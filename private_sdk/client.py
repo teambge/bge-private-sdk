@@ -495,9 +495,8 @@ class PrivateAPI(object):
             merge_data_element_id=merge_data_element_id, comment=comment)
         request = HTTPRequest(
             self.endpoint, max_retries=max_retries, verbose=verbose)
-        result = request.post(
+        request.post(
             '/openbge/data_element/merge', data=data, timeout=timeout)
-        return models.Model(result)
 
     def retrieve_batch(self, batch_no):
         """获取批次详情
@@ -926,7 +925,7 @@ class PrivateAPI(object):
         data = make_sign(
             self.app_key, self.app_secret, client_id=client_id,
             redirect_uri=redirect_uri, auth_token=auth_token,
-            biosample_ids=biosample_ids)
+            biosample_ids=json.dumps(biosample_ids))
         request = HTTPRequest(
             self.endpoint, max_retries=max_retries, verbose=verbose)
         result = request.post(
@@ -953,6 +952,8 @@ class PrivateAPI(object):
             self.endpoint, max_retries=max_retries, verbose=verbose)
         result = request.post(
             '/openbge/oauth2/grants', data=data, timeout=timeout)
+        if result == []:
+            return None
         return models.Model(result)
 
     def oauth2_revoke_grant(self, auth_token, client_id):
@@ -970,9 +971,8 @@ class PrivateAPI(object):
             client_id=client_id)
         request = HTTPRequest(
             self.endpoint, max_retries=max_retries, verbose=verbose)
-        result = request.post(
+        request.post(
             '/openbge/oauth2/revoke_grant', data=data, timeout=timeout)
-        return models.Model(result)
 
     def get_surveys(self, **kwargs):
         """获取已创建的问卷
@@ -1079,9 +1079,8 @@ class PrivateAPI(object):
             self.app_key, self.app_secret, survey_ids=survey_ids)
         request = HTTPRequest(
             self.endpoint, max_retries=max_retries, verbose=verbose)
-        result = request.post(
+        request.post(
             '/api/survey/surveys/delete', data=data, timeout=timeout)
-        return models.Model(result)
 
     def survey_question(self, survey_id, **kwargs):
         """根据参数筛选某问卷中的问题
@@ -1163,7 +1162,7 @@ class PrivateAPI(object):
             '/api/survey/questions/replace', data=data, timeout=timeout)
         return models.Model(result)
 
-    def delete_questions(self, question_ids):
+    def questions_delete(self, question_ids):
         """删除一个或多个问题
         
         Args:
@@ -1176,11 +1175,10 @@ class PrivateAPI(object):
             self.app_key, self.app_secret, question_ids=question_ids)
         request = HTTPRequest(
             self.endpoint, max_retries=max_retries, verbose=verbose)
-        result = request.post(
+        request.post(
             '/api/survey/questions/delete', data=data, timeout=timeout)
-        return models.Model(result)
 
-    def clean_questions(self, survey_ids):
+    def questions_clean(self, survey_ids):
         """清空一个或多个问卷下的全部问题
         
         Args:
@@ -1193,11 +1191,10 @@ class PrivateAPI(object):
             self.app_key, self.app_secret, survey_ids=survey_ids)
         request = HTTPRequest(
             self.endpoint, max_retries=max_retries, verbose=verbose)
-        result = request.post(
+        request.post(
             '/api/survey/questions/clean', data=data, timeout=timeout)
-        return models.Model(result)
 
-    def survey_options(self, **kwargs):
+    def survey_options(self, question_id, **kwargs):
         """根据参数筛选某个问题下的选项
         
         Args:
@@ -1213,6 +1210,9 @@ class PrivateAPI(object):
         timeout = self.timeout
         verbose = self.verbose
         max_retries = self.max_retries
+        kwargs.update({
+            'question_id': question_id
+        })
         data = make_sign(self.app_key, self.app_secret, **kwargs)
         request = HTTPRequest(
             self.endpoint, max_retries=max_retries, verbose=verbose)
@@ -1267,7 +1267,7 @@ class PrivateAPI(object):
             '/api/survey/options/replace', data=data, timeout=timeout)
         return models.Model(result)
 
-    def delete_options(self, option_ids):
+    def options_delete(self, option_ids):
         """删除一个或多个选项
         
         Args:
@@ -1280,11 +1280,10 @@ class PrivateAPI(object):
             self.app_key, self.app_secret, option_ids=option_ids)
         request = HTTPRequest(
             self.endpoint, max_retries=max_retries, verbose=verbose)
-        result = request.post(
+        request.post(
             '/api/survey/options/delete', data=data, timeout=timeout)
-        return models.Model(result)
 
-    def clean_options(self, question_ids):
+    def options_clean(self, question_ids):
         """清空某些问题下的全部选项
         
         Args:
@@ -1297,11 +1296,10 @@ class PrivateAPI(object):
             self.app_key, self.app_secret, question_ids=question_ids)
         request = HTTPRequest(
             self.endpoint, max_retries=max_retries, verbose=verbose)
-        result = request.post(
+        request.post(
             '/api/survey/options/clean', data=data, timeout=timeout)
-        return models.Model(result)
 
-    def batch_create_options(self, question_id, options):
+    def options_batch_create(self, question_id, options):
         """批量创建某问题下的选项，选项创建前会将该问题下的旧选项全部清空
         
         只有 checkbox、radio 两种问题才能使用本接口批量创建选项；
@@ -1315,12 +1313,11 @@ class PrivateAPI(object):
         max_retries = self.max_retries
         data = make_sign(
             self.app_key, self.app_secret, question_id=question_id,
-            options=options)
+            options=json.dumps(options))
         request = HTTPRequest(
             self.endpoint, max_retries=max_retries, verbose=verbose)
-        result = request.post(
+        request.post(
             '/api/survey/options/batch_create', data=data, timeout=timeout)
-        return models.Model(result)
 
     def release_surveys(self, **kwargs):
         """根据参数筛选全部已发布问卷
@@ -1384,9 +1381,8 @@ class PrivateAPI(object):
             release_survey_id=release_survey_id)
         request = HTTPRequest(
             self.endpoint, max_retries=max_retries, verbose=verbose)
-        result = request.post(
+        request.post(
             '/api/survey/release_surveys/delete', data=data, timeout=timeout)
-        return models.Model(result)
 
     def release_questions(self, release_survey_id, **kwargs):
         """根据参数筛选某已发布问卷中的问题
@@ -1503,14 +1499,14 @@ class PrivateAPI(object):
         data = make_sign(
             self.app_key, self.app_secret, user_id=user_id,
             biosample_id=biosample_id, release_survey_id=release_survey_id,
-            answers=answers)
+            answers=json.dumps(answers))
         request = HTTPRequest(
             self.endpoint, max_retries=max_retries, verbose=verbose)
         result = request.post(
             '/api/survey/responses/import', data=data, timeout=timeout)
         return models.Model(result)
 
-    def sync_responses(self, limesurvey_id, limeresponses_id, **kwargs):
+    def sync_responses(self, limesurvey_id, limeresponse_id, **kwargs):
         """将 limesurvey 中的答卷数据同步到问卷系统的答卷中
         
         limesurvey_id 和 limeresponse_id 相同时，重复调用本接口不会重复生成数据， 
@@ -1530,7 +1526,7 @@ class PrivateAPI(object):
         max_retries = self.max_retries
         kwargs.update({
             'limesurvey_id': limesurvey_id,
-            'limeresponses_id': limeresponses_id
+            'limeresponse_id': limeresponse_id
         })
         data = make_sign(self.app_key, self.app_secret, **kwargs)
         request = HTTPRequest(
@@ -1584,9 +1580,11 @@ class PrivateAPI(object):
             data_element_identifier_des=data_element_identifier_des)
         request = HTTPRequest(
             self.endpoint, max_retries=max_retries, verbose=verbose)
+        ret = {}
         result = request.post(
             '/api/survey/answers/latest', data=data, timeout=timeout)
-        return models.Model(result)
+        ret['result'] = [models.Model(item) for item in result]
+        return ret
 
     def answers_retrieve(self, answer_id):
         """根据答案编号获取答案
@@ -1689,7 +1687,7 @@ class PrivateAPI(object):
             '/api/survey/projects', data=data, timeout=timeout)
         return models.Model(result)
 
-    def survey_target(self, **kwargs):
+    def survey_target(self, AND=None, OR=None, **kwargs):
         """从回收的答案中根据参数条件筛选定向推送的用户编号
         
         Args:
@@ -1704,6 +1702,10 @@ class PrivateAPI(object):
         timeout = self.timeout
         verbose = self.verbose
         max_retries = self.max_retries
+        kwargs.update({
+            'AND': json.dumps(AND),
+            'OR': json.dumps(OR)
+        })
         data = make_sign(self.app_key, self.app_secret, **kwargs)
         request = HTTPRequest(
             self.endpoint, max_retries=max_retries, verbose=verbose)
@@ -1748,3 +1750,247 @@ class PrivateAPI(object):
         result = request.post(
             '/openbge/wechat/profile', data=data, timeout=timeout)
         return models.Model(result)
+
+    def openbge_search(self, query, category, biosample_id=None, limit=50,
+                       page=1):
+        """搜索 BGE 的报告、变异位点、应用、研究所问卷
+        
+        Args:
+            query(str): 搜索文本；
+            category(str): 类别；
+            biosample_id(str, 非必填): 生物样品编号；
+            limit(int, 非必填): 单页数据返回数量，默认 50;
+            page(int, 非必填): 单页数据返回数量，默认 1;
+        
+        """
+        timeout = self.timeout
+        verbose = self.verbose
+        max_retries = self.max_retries
+        data = make_sign(
+            self.app_key, self.app_secret, query=query, category=category,
+            biosample_id=biosample_id, limit=limit, page=page)
+        request = HTTPRequest(
+            self.endpoint, max_retries=max_retries, verbose=verbose)
+        result = request.post(
+            '/openbge/search', data=data, timeout=timeout)
+        return models.Model(result)
+
+    def create_index(self, type, content):
+        """可以一次创建或更新多条索引
+        
+        Args:
+            type(str): 索引类型，固定设置为 survey；
+            content(list): 索引内容，json 格式的字符串；
+        
+        Returns:
+            Model: 创建后的索引类
+        """
+        timeout = self.timeout
+        verbose = self.verbose
+        max_retries = self.max_retries
+        data = make_sign(
+            self.app_key, self.app_secret, type=type,
+            content=json.dumps(content))
+        request = HTTPRequest(
+            self.endpoint, max_retries=max_retries, verbose=verbose)
+        result = request.post(
+            '/openbge/index', data=data, timeout=timeout)
+        ret = {}
+        ret['result'] = [models.Model(item) for item in result]
+        return ret
+
+    def delete_index(self, type, ids):
+        """一次删除多个索引
+        
+        Args:
+            type(str): 索引类型，固定设置为 survey；
+            ids(str): 要删除的问卷索引编号，多个编号以逗号分割，如：1,2,3；
+        
+        Returns:
+            Model: 删除结果
+        """
+        timeout = self.timeout
+        verbose = self.verbose
+        max_retries = self.max_retries
+        data = make_sign(
+            self.app_key, self.app_secret, type=type, ids=ids)
+        request = HTTPRequest(
+            self.endpoint, max_retries=max_retries, verbose=verbose)
+        result = request.post(
+            '/openbge/index/delete', data=data, timeout=timeout)
+        ret = {}
+        ret['result'] = [models.Model(item) for item in result]
+        return ret
+
+    def gateway_invoke(self, service, api, **kwargs):
+        """网关服务主要目的用于将无身份验证的其他项目接口通过本接口进行代理转发，
+        对参数进行验证等，为接口提供签名认证的安全调用；
+        
+        Args:
+            service(str): 服务名，请先在后台配置；
+            api(str): 接口地址，根据后台配置的接口地址进行适配；
+            params(str, 非必填): 需要转发的 GET 参数；
+            headers(str, 非必填): 需要转发的 HTTP 头部；
+            data(str, 非必填): 需要转发的 POST 数据；
+        """
+        timeout = self.timeout
+        verbose = self.verbose
+        max_retries = self.max_retries
+        kwargs.update({
+            'service': service,
+            'api': api
+        })
+        data = make_sign(
+            self.app_key, self.app_secret, **kwargs)
+        request = HTTPRequest(
+            self.endpoint, max_retries=max_retries, verbose=verbose)
+        result = request.post(
+            '/gateway/invoke', data=data, timeout=timeout)
+        return models.Model(result)
+
+    def image_upload(self, image_path, allow_exif=False):
+        """通过接口上传各种类型的图片，接口返回可访问的在线图片链接
+        
+        Args:
+            image_path(str): 图片路径；
+            allow_exif(bool, 非必填): 是否允许保存图片 exif 值；默认值：false；
+            
+        Returns:
+            Model: 图片下载地址与md5值
+        """
+        timeout = self.timeout
+        verbose = self.verbose
+        max_retries = self.max_retries
+        data = make_sign(
+            self.app_key, self.app_secret, allow_exif=allow_exif)
+        files = {'image': open(image_path, 'rb')}
+        request = HTTPRequest(
+            self.endpoint, max_retries=max_retries, verbose=verbose,
+            content_type=None)
+        result = request.post(
+            '/service/image/upload', data=data, files=files, timeout=timeout)
+        return models.Model(result)
+
+    def sms(self, template, mobiles, **kwargs):
+        """通用短信接口
+        
+        Args:
+            template(str): 短信模板；
+            mobiles(str): 手机号，逗号分割多个手机号，最多提供 100 个手机号；
+        
+        Kwargs:
+            其他非必填参数参考接口文档
+        """
+        timeout = self.timeout
+        verbose = self.verbose
+        max_retries = self.max_retries
+        kwargs.update({
+            'template': template,
+            'mobiles': mobiles
+        })
+        data = make_sign(self.app_key, self.app_secret, **kwargs)
+        request = HTTPRequest(
+            self.endpoint, max_retries=max_retries, verbose=verbose)
+        request.post('/service/sms', data=data, timeout=timeout)
+
+    def sts_token(self):
+        """获取阿里云第三方上传服务临时访问凭证
+        
+        """
+        timeout = self.timeout
+        verbose = self.verbose
+        max_retries = self.max_retries
+        data = make_sign(
+            self.app_key, self.app_secret)
+        request = HTTPRequest(
+            self.endpoint, max_retries=max_retries, verbose=verbose)
+        result = request.post(
+            '/service/sts/token', data=data, timeout=timeout)
+        return models.Model(result)
+
+    def sign_url(self, object_name, region=None, expiration_time=None):
+        """获取阿里云 OSS（对象存储）中的文件下载地址
+        
+        Args:
+            object_name(str): OSS 对象;
+            region(str): 区域，可选值：domestic、international；
+            expiration_time(int): 下载地址过期时间;
+        
+        Returns:
+            Model: 下载地址
+        """
+        timeout = self.timeout
+        verbose = self.verbose
+        max_retries = self.max_retries
+        data = make_sign(
+            self.app_key, self.app_secret, object_name=object_name,
+            region=region, expiration_time=expiration_time)
+        request = HTTPRequest(
+            self.endpoint, max_retries=max_retries, verbose=verbose)
+        result = request.post(
+            '/service/oss/sign_url', data=data, timeout=timeout)
+        return models.Model(result)
+
+    def shorturls(self, url):
+        """将长的网址转换为短网址
+        
+        Args:
+            url(str): 要转为短网址的链接
+        
+        Returns:
+            Model: 转换后的网址
+        """
+        timeout = self.timeout
+        verbose = self.verbose
+        max_retries = self.max_retries
+        data = make_sign(self.app_key, self.app_secret, url=url)
+        request = HTTPRequest(
+            self.endpoint, max_retries=max_retries, verbose=verbose)
+        result = request.post(
+            '/service/shorturls', data=data, timeout=timeout)
+        return models.Model(result)
+
+    def bgicoin_withdraw(self, account_name, amount, order_type, order_id):
+        """从华大员工华大币账户扣款付给商户
+        
+        Args:
+            account_name(str): 付款的华大员工邮箱前缀；
+            amount(str): 付款金额，必须大于 0；
+            order_type(int): 订单类型，消费类型: 4线上消费，5体检，6线下消费;
+            order_id(str): 第三方订单编号，需保证在第三方系统中唯一；订单号长度需大于或等于 8
+        
+        Returns:
+            Model: 订单
+        """
+        timeout = self.timeout
+        verbose = self.verbose
+        max_retries = self.max_retries
+        data = make_sign(
+            self.app_key, self.app_secret, account_name=account_name,
+            amount=amount, order_type=order_type, order_id=order_id)
+        request = HTTPRequest(
+            self.endpoint, max_retries=max_retries, verbose=verbose)
+        result = request.post(
+            '/service/bgicoin/withdraw', data=data, timeout=timeout)
+        return models.Model(result)
+
+    def wechat_token(self, app_id, action):
+        """获取或更新微信公众号 access_token 的中控服务接口
+        
+        Args:
+            app_id(str): BGE 微信公众号、小程序的 app_id;
+            action(str): 可选项 get、refresh；
+        
+        Returns:
+            Model: token
+        """
+        timeout = self.timeout
+        verbose = self.verbose
+        max_retries = self.max_retries
+        data = make_sign(
+            self.app_key, self.app_secret, app_id=app_id, action=action)
+        request = HTTPRequest(
+            self.endpoint, max_retries=max_retries, verbose=verbose)
+        result = request.post(
+            '/openbge/wechat/token', data=data, timeout=timeout)
+        return models

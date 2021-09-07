@@ -90,8 +90,10 @@ class HTTPRequest(object):
         result = resp.json()
         self.logger.debug('Response: \n\t%s', result)
         data = result.get('data')
-        code = result['code']
-        msg = result['msg']
+        code = result.get('code', None)
+        msg = result.get('msg', None)
+        if code is None:
+            return result
         if code != 0:
             raise APIError(code, msg, data)
         pagination = result.get('pagination')
