@@ -1,4 +1,4 @@
-## genome_variant
+## variant
 
 [![私有平台接口文档](https://img.shields.io/badge/私有平台接口文档-lightgrey)](https://api.private.omgut.com/doc/#/variant/v2)
 
@@ -13,7 +13,7 @@
 ```python
 private = PrivateAPI(app_key, app_secret, endpoint=endpoint,
                  max_retries=3, timeout=60, verbose=False)
-result = private.genome_variant(biosample_id='E-B19593615052', rsids='rs14,rs133,rs324,rs546')
+result = private.variant(biosample_id='E-B19593615052', rsids='rs14,rs133,rs324,rs546')
 for item in result:
     print(item.dumps(indent=4))
 ```
