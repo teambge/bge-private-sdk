@@ -165,6 +165,23 @@ class PrivateAPI(object):
         ret = [models.Model(item) for item in result]
         return ret
 
+    def variant_v1(self, biosample_id, **kwargs):
+        """旧版变异位点查询接口
+
+        """
+        timeout = self.timeout
+        verbose = self.verbose
+        max_retries = self.max_retries
+        data = make_sign(
+            self.app_key, self.app_secret, biosample_id=biosample_id,
+            **kwargs)
+        request = HTTPRequest(
+            self.endpoint, max_retries=max_retries, verbose=verbose)
+        result = request.post(
+            '/openbge/genome/variant', data=data, timeout=timeout)
+        ret = [models.Model(item) for item in result]
+        return ret
+
     def professional_variant(self, biosample_id, only_variant_site=True,
                              regions=None, bed_file=None):
         """查询专业级变异数据
@@ -2149,6 +2166,36 @@ class PrivateAPI(object):
         result = request.post(url, data=data, timeout=timeout)
         return models.Model(result)
 
+    def model_doc_upload(self, doc_tab, model_id, doc_content):
+        """上传模型文档
+
+        """
+        timeout = self.timeout
+        verbose = self.verbose
+        max_retries = self.max_retries
+        data = make_sign(
+            self.app_key, self.app_secret, doc_tab=doc_tab,
+            model_id=model_id, doc_content=doc_content)
+        request = HTTPRequest(
+            self.endpoint, max_retries=max_retries, verbose=verbose)
+        result = request.post(
+            '/openbge/model/doc_upload', data=data, timeout=timeout)
+        return models.Model(result)
+
+    def upload_model_expfs(self, model_id, expfs):
+
+        timeout = self.timeout
+        verbose = self.verbose
+        max_retries = self.max_retries
+        data = make_sign(self.app_key, self.app_secret, model_id=model_id)
+        files = {'expfs': open(str(expfs), 'rb')}
+        request = HTTPRequest(
+            self.endpoint, max_retries=max_retries, verbose=verbose)
+        result = request.post(
+            '/openbge/model/doc_upload', data=data, files=files,
+            timeout=timeout)
+        return models.Model(result)
+
     def watch_fc2(self, trigger, event):
 
         timeout = self.timeout
@@ -2176,3 +2223,21 @@ class PrivateAPI(object):
             '/v2/openbge/samples', data=data, timeout=timeout)
         return models.Model(result)
 
+    def task(self, task_id):
+        """获取任务结果
+
+        Args:
+            task_id(str): 任务 id
+
+        Returns:
+            models: 任务结果
+        """
+        timeout = self.timeout
+        verbose = self.verbose
+        max_retries = self.max_retries
+        data = make_sign(self.app_key, self.app_secret)
+        request = HTTPRequest(
+            self.endpoint, max_retries=max_retries, verbose=verbose)
+        result = request.post(
+            '/openbge/task/{}'.format(task_id), data=data, timeout=timeout)
+        return models.Model(result)
